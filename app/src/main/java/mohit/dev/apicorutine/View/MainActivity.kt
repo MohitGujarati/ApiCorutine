@@ -39,19 +39,20 @@ class MainActivity : AppCompatActivity() {
             .addConverterFactory(GsonConverterFactory.create()).build()
 
         val blogService=retrofit.create(Api_interface::class.java)
-        //Launching Coroutine in background thread
-        CoroutineScope(Dispatchers.IO).launch {
+        // we first used Dis.IO
+        // But as retrofit is already well designed it runs on background thread
+        // Launch Coroutine in main thread can be beneficial as we can
+        //Directly set text with out calling main thread again
+        CoroutineScope(Dispatchers.Main).launch {
             Log.d("Api_Requestcall","Coroutine thread name ${Thread.currentThread().name}")
             try {
                 val blogPost = blogService.getPost(1)
                 val user = blogService.getUser(blogPost.userId)
                 val postsByUser = blogService.getPostsByUser(user.id)
-
-
                 //As we cant use bg thread to update our ui
-                withContext(Dispatchers.Main){
+
                     TextView.text = "User ${user.name} made ${postsByUser.size} posts"
-                }
+
 
             } catch (exception: Exception) {
                 Log.e("Api_Requestcall", "Exception $exception")
